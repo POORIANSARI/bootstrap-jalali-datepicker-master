@@ -87,9 +87,14 @@ function jd_to_islamic(jd)
     return new Array(year, month, day);
 }
 
+// function leap_persian(year)
+// {
+//     return  ((((((year - ((year > 0) ? 474 : 473)) % 2820) + 474) + 38) * 682) % 2816) < 682;
+// }
 function leap_persian(year)
 {
-    return ((((((year - ((year > 0) ? 474 : 473)) % 2820) + 474) + 38) * 682) % 2816) < 682;
+let rem = [0,4,8,12,16,24,25,29,33,37,41,45,49,53,57,62,62,66,70,74,78,82,86,90,95,99,103,107,111,115,119,123];
+return rem.filter(y=>y==(year % 128)).length != 0
 }
 var PERSIAN_EPOCH = 1948320.5;
 function persian_to_jd(year, month, day)
@@ -98,7 +103,11 @@ function persian_to_jd(year, month, day)
 
     epbase = year - ((year >= 0) ? 474 : 473);
     epyear = 474 + mod(epbase, 2820);
-
+    isLastYearLeapPersian = leap_persian(year - 1);
+    //isNextYearLeapPersian = leap_persian(year + 1);
+    if(isLastYearLeapPersian){
+        day = day + 1;
+    }
     return day +
             ((month <= 7) ?
                 ((month - 1) * 31) :
@@ -107,7 +116,7 @@ function persian_to_jd(year, month, day)
             Math.floor(((epyear * 682) - 110) / 2816) +
             (epyear - 1) * 365 +
             Math.floor(epbase / 2820) * 1029983 +
-            (PERSIAN_EPOCH - 1);
+            (PERSIAN_EPOCH - 1)  ;
 }
 function jd_to_persian(jd)
 {
@@ -135,6 +144,11 @@ function jd_to_persian(jd)
     yday = (jd - persian_to_jd(year, 1, 1)) + 1;
     month = (yday <= 186) ? Math.ceil(yday / 31) : Math.ceil((yday - 6) / 30);
     day = (jd - persian_to_jd(year, month, 1)) + 1;
+    // isLastYearLeapPersian = leap_persian(year - 1);
+    // //isNextYearLeapPersian = leap_persian(year + 1);
+    // if(isLastYearLeapPersian){
+    //     day = day;
+    // }
     return new Array(year, month, day);
 }
 
@@ -151,6 +165,8 @@ function JalaliDate(p0, p1, p2) {
 
     function jalali_to_gregorian(d) {
 		var adjustDay = 0;
+        console.log(d);
+
 		if(d[1]<0){
 			adjustDay = leap_persian(d[0]-1)? 30: 29;
 			d[1]++;
